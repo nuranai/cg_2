@@ -184,7 +184,7 @@ void Area::hideEvent(QHideEvent *) {
 }
 
 void Area::start_prog() {
-    myTimer = startTimer(1000);
+    myTimer = startTimer(50);
 }
 
 void Area::setNewCoords(Shape *shape, float** changeMatrix) {
