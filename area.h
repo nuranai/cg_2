@@ -8,8 +8,13 @@ class Area : public QWidget
 {
     Q_OBJECT
 private:
-    Shape* shape;
-//    float alpha;
+//    Shape* shape;
+//    Shape* shapeOrigin;
+    int myTimer;
+    float viewX = 0;
+    float viewY = 6;
+    float viewZ = 5;
+    float alpha = 0;
     void setNewCoords(Shape* shape, float**);
     void translateShape(float** oldMatrix, Coords* value);
     void rotateShapeX(float** oldMatrix, float cosV, float sinV);
@@ -20,7 +25,8 @@ private:
 public:
     Area(QWidget *parent = 0);
     ~Area() {
-        delete shape;
+//        delete shape;
+        killTimer(myTimer);
     };
 public slots:
     void start_prog();

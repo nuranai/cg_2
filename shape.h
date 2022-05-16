@@ -14,6 +14,9 @@ public:
     float getX() {return x;}
     float getY() {return y;}
     float getZ() {return z;}
+    void setX(float _x) {x = _x;}
+    void setY(float _y) {y = _y;}
+    void setZ(float _z) {z = _z;}
     friend class Shape;
 };
 

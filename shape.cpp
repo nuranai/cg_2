@@ -36,6 +36,8 @@ Shape::~Shape() {
 // we are about to destroy a super sexy shape
     for (int i = 0; i < n; i++) {
         delete ver[i];
+        delete reb[i];
     }
     delete []ver;
+    delete []reb;
 }

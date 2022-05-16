@@ -8,25 +8,50 @@ using namespace std;
 
 Area::Area(QWidget *parent):QWidget(parent)
 {
-    Coords** shapeCoords = new Coords*[8];
-    shapeCoords[0] = new Coords(0, 0, 0);
-    shapeCoords[1] = new Coords(4, 0, 0);
-    shapeCoords[2] = new Coords(0, 4, 0);
+//    Coords** shapeOrinigCoords = new Coords*[4];
+//    shapeOrinigCoords[0] = new Coords(2, 0, 0);
+//    shapeOrinigCoords[1] = new Coords(0, 2, 0);
+//    shapeOrinigCoords[2] = new Coords(-2, 0, 0);
+//    shapeOrinigCoords[3] = new Coords(0, 0, 4);
+
+
+//    Connection** shapeOriniConnections = new Connection*[6];
+//    shapeOriniConnections[0] = new Connection(0, 1);
+//    shapeOriniConnections[1] = new Connection(0, 2);
+//    shapeOriniConnections[2] = new Connection(0, 3);
+//    shapeOriniConnections[3] = new Connection(1, 2);
+//    shapeOriniConnections[4] = new Connection(1, 3);
+//    shapeOriniConnections[5] = new Connection(2, 3);
+
+
+//    shapeOrigin = new Shape(4, shapeOrinigCoords, 6, shapeOriniConnections);
+
+    setFixedSize(QSize(500, 500));
+}
+
+void Area::showEvent(QShowEvent *) {
+    update();
+}
+
+void Area::paintEvent(QPaintEvent *) {
+    QPainter painter(this);
+    painter.setPen(Qt::red);
+
+    Coords** shapeCoords = new Coords*[4];
+    shapeCoords[0] = new Coords(2, 0, 0);
+    shapeCoords[1] = new Coords(0, 2, 0);
+    shapeCoords[2] = new Coords(-2, 0, 0);
     shapeCoords[3] = new Coords(0, 0, 4);
-    shapeCoords[4] = new Coords(2, 0, 1);
-    shapeCoords[5] = new Coords(-2, 0, 1);
-    shapeCoords[6] = new Coords(2, 1, 0);
-    shapeCoords[7] = new Coords(-2, 1, 0);
-    Connection** shapeConnections = new Connection*[5];
+
+    Connection** shapeConnections = new Connection*[6];
     shapeConnections[0] = new Connection(0, 1);
     shapeConnections[1] = new Connection(0, 2);
     shapeConnections[2] = new Connection(0, 3);
-    shapeConnections[3] = new Connection(4, 5);
-    shapeConnections[4] = new Connection(6, 7);
+    shapeConnections[3] = new Connection(1, 2);
+    shapeConnections[4] = new Connection(1, 3);
+    shapeConnections[5] = new Connection(2, 3);
 
-    shape = new Shape(8, shapeCoords, 5, shapeConnections);
-
-    setFixedSize(QSize(500, 500));
+    Shape* shape = new Shape(4, shapeCoords, 6, shapeConnections);
 
     float** transformMatrix = new float*[4];
 
@@ -41,99 +66,125 @@ Area::Area(QWidget *parent):QWidget(parent)
         }
     }
 
-    int viewX = 3;
-    int viewY = 4;
-    int viewZ = 6;
-    Coords* translateCoords = new Coords(-viewX, -viewY, -viewZ);
-    translateShape(transformMatrix, translateCoords);
-    scaleShape(transformMatrix, -1, 1, 1);
-    rotateShapeX(transformMatrix, 0, 1);
-    float d = sqrt(viewX * viewX + viewY * viewY);
-    float cosU = viewY / d;
-    float sinU = viewX / d;
-    rotateShapeY(transformMatrix, cosU, sinU);
-    float s = sqrt(d*d + viewZ * viewZ);
-    float cosW = d / s;
-    float sinW = viewZ / s;
-    rotateShapeX(transformMatrix, cosW, sinW);
-//    rotateShapeZ(transformMatrix, cos(90*M_PI/180), sin(90*M_PI/180));
-    setNewCoords(shape, transformMatrix);
-    float r = sqrt(viewX * viewX + viewY * viewY + viewZ * viewZ);
-    for (int i = 0; i < 8; i++) {
-        Coords* first = shape->getCoords(i);
-        float P = 5;
-        float newXF = first->getX()*r/first->getZ();
-        newXF = newXF / P * 250 + 250;
-        float newYF = first->getY()*r/first->getZ();
-        newYF = newYF / P * 250 + 250;
-        shape->SetCoords(i, newXF, newYF, first->getZ());
-        Coords* bamp = shape->getCoords(i);
+    float _viewX = viewX;
+    float _viewY = viewY;
+    float _viewZ = viewZ;
+
+    Coords* view = new Coords(_viewX, _viewY, _viewZ);
+
+    float cos1 = cos(M_PI * alpha/ 180);
+    float sin1 = sin(M_PI * alpha / 180);
+
+    rotateShapeY(transformMatrix, cos1, sin1);
+    float** superCoords = new float*[4];
+    for(int i = 0; i < 4 ; i++) {
+        superCoords[i] = new float[1];
     }
-    float** mm = new float*[3];
-    float** m = new float*[3];
-    for (int i = 0; i < 3; i++) {
-        mm[i] = new float [3];
-        m[i] = new float [1];
-        m[i][0] = 1;
-        for (int j = 0; j < 3; j++) {
-            mm[i][j] = 0;
+
+    superCoords[0][0] = viewX;
+    superCoords[0][1] = viewY;
+    superCoords[0][2] = viewZ;
+    superCoords[0][3] = 1;
+
+
+    matrixMultiplication(superCoords, 1, 4, transformMatrix, 4, 4);
+
+    view->setX(superCoords[0][0]);
+    view->setY(superCoords[0][1]);
+    view->setZ(superCoords[0][2]);
+
+//    viewX = view->getX();
+//    viewY = view->getY();
+//    viewZ = view->getZ();
+
+//    cout << superCoords[0][0] << ' ' <<superCoords[0][1] << ' ' <<superCoords[0][2] << ' ' << endl;
+    Coords* translateCoords = new Coords(-view->getX(), -view->getY(), -view->getZ());
+
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            if (i == j) {
+                transformMatrix[i][j] = 1;
+            }
+            else
+                transformMatrix[i][j] = 0;
         }
     }
-    float centerX = 0;
-    for (int i = 0; i < 8; i++) {
-        centerX += shape->getCoords(i)->getX();
-//        centerY += shape->getCoords(i)->getY();
-    }
-    centerX /= 8;
-//    centerY /= 8;
-    cout << centerX << endl;
 
-    mm[0][1] = 1;
-    mm[1][0] = -1;
-    mm[2][0] = centerX * 2;
-    mm[2][2] = 1;
-    for (int i = 0; i < 8; i++) {
-        Coords* cor = shape->getCoords(i);
-        m[0][0] = cor->getX();
-        m[0][1] = cor->getY();
-//        matrixMultiplication(m, 1, 3, mm, 3, 3);
-//        shape->SetCoords(i, m[0][0], m[0][1], cor->getZ());
-//        cout << cor->getX() << ' ' << cor->getY() << ' ' << cor->getZ() << endl;
+    cout << translateCoords->getX() << ' ' << translateCoords->getY() << ' ' << translateCoords->getZ() << endl;
+    translateShape(transformMatrix, translateCoords);
+
+    scaleShape(transformMatrix, -1, 1, 1);
+
+    rotateShapeX(transformMatrix, 0, 1);
+
+    float d = sqrt(view->getX() * view->getX() + view->getY() * view->getY());
+
+    float cosU = view->getY() / d;
+    float sinU = view->getX() / d;
+
+    rotateShapeY(transformMatrix, cosU, sinU);
+
+    float s = sqrt(d*d + view->getZ() * view->getZ());
+
+    float cosW = d / s;
+    float sinW = view->getZ() / s;
+
+    rotateShapeX(transformMatrix, cosW, sinW);
+
+    setNewCoords(shape, transformMatrix);
+
+    float r = sqrt(view->getX() * view->getX() + view->getY() * view->getY() + view->getZ() * view->getZ());
+
+    for (int i = 0; i < 4; i++) {
+        Coords* first = shape->getCoords(i);
+
+//        cout << "shapeOrigin::" << shapeOrigin->getCoords(i)->getX() << ' ' << shapeOrigin->getCoords(i)->getY() << ' ' << shapeOrigin->getCoords(i)->getZ() << ' ' << endl;
+        float P = 5;
+//        float newXF = first->getX()*r/first->getZ();
+        float newXF = first->getX();
+        newXF = newXF / P * 250 + 250;
+//        float newYF = first->getY()*r/first->getZ();
+        float newYF = first->getY();
+        newYF =  newYF / P * 250 + 250;
+        shape->SetCoords(i, newXF, 500 - newYF, first->getZ());
+//        cout << "shape::" << shape->getCoords(i)->getX() << ' ' << shape->getCoords(i)->getY() << ' ' << shape->getCoords(i)->getZ() << ' ' << endl;
+//        delete first;
     }
-//    mm[2][0] = -centerX;
-//    mm[2][1] = -centerY;
 
     for (int i = 0; i < 4; i++) {
         delete [] transformMatrix[i];
-//        delete [] m[i];
+//        delete [] superCoords[i];
     }
     delete [] transformMatrix;
-//    delete [] m;
-}
+//    delete [] superCoords;
+    delete view;
 
-void Area::showEvent(QShowEvent *) {
-    update();
-}
-
-void Area::paintEvent(QPaintEvent *) {
-    QPainter painter(this);
-    painter.setPen(Qt::red);
     int conN = shape->getConN();
     for (int i = 0; i < conN; i++) {
         Connection* connection = shape->getConnection(i);
         Coords* first = shape->getCoords(connection->getBegin());
         Coords* second = shape->getCoords(connection->getEnd());
         painter.drawLine(first->getX(), first->getY(), second->getX(), second->getY());
+//        delete connection;
+//        delete first;
+//        delete second;
     }
+    delete shape;
 }
 
 void Area::timerEvent(QTimerEvent *) {
+    alpha += 1;
+    if (alpha > 15)
+        killTimer(myTimer);
+    else
+        update();
 }
 
 void Area::hideEvent(QHideEvent *) {
 }
 
 void Area::start_prog() {
+    myTimer = startTimer(1000);
 }
 
 void Area::setNewCoords(Shape *shape, float** changeMatrix) {
