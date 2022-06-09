@@ -8,24 +8,6 @@ using namespace std;
 
 Area::Area(QWidget *parent):QWidget(parent)
 {
-//    Coords** shapeOrinigCoords = new Coords*[4];
-//    shapeOrinigCoords[0] = new Coords(2, 0, 0);
-//    shapeOrinigCoords[1] = new Coords(0, 2, 0);
-//    shapeOrinigCoords[2] = new Coords(-2, 0, 0);
-//    shapeOrinigCoords[3] = new Coords(0, 0, 4);
-
-
-//    Connection** shapeOriniConnections = new Connection*[6];
-//    shapeOriniConnections[0] = new Connection(0, 1);
-//    shapeOriniConnections[1] = new Connection(0, 2);
-//    shapeOriniConnections[2] = new Connection(0, 3);
-//    shapeOriniConnections[3] = new Connection(1, 2);
-//    shapeOriniConnections[4] = new Connection(1, 3);
-//    shapeOriniConnections[5] = new Connection(2, 3);
-
-
-//    shapeOrigin = new Shape(4, shapeOrinigCoords, 6, shapeOriniConnections);
-
     setFixedSize(QSize(500, 500));
 }
 
@@ -37,21 +19,31 @@ void Area::paintEvent(QPaintEvent *) {
     QPainter painter(this);
     painter.setPen(Qt::red);
 
-    Coords** shapeCoords = new Coords*[4];
-    shapeCoords[0] = new Coords(2, 0, 0);
-    shapeCoords[1] = new Coords(0, 2, 0);
-    shapeCoords[2] = new Coords(-2, 0, 0);
-    shapeCoords[3] = new Coords(0, 0, 4);
+    Coords** shapeCoords = new Coords*[8];
+    shapeCoords[0] = new Coords(0, 0, 0);
+    shapeCoords[1] = new Coords(2, 0, 0);
+    shapeCoords[2] = new Coords(2, 2, 0);
+    shapeCoords[3] = new Coords(0, 2, 0);
+    shapeCoords[4] = new Coords(0, 0, 2);
+    shapeCoords[5] = new Coords(2, 0, 2);
+    shapeCoords[6] = new Coords(2, 2, 2);
+    shapeCoords[7] = new Coords(0, 2, 2);
 
-    Connection** shapeConnections = new Connection*[6];
+    Connection** shapeConnections = new Connection*[12];
     shapeConnections[0] = new Connection(0, 1);
-    shapeConnections[1] = new Connection(0, 2);
-    shapeConnections[2] = new Connection(0, 3);
-    shapeConnections[3] = new Connection(1, 2);
-    shapeConnections[4] = new Connection(1, 3);
-    shapeConnections[5] = new Connection(2, 3);
+    shapeConnections[1] = new Connection(1, 2);
+    shapeConnections[2] = new Connection(2, 3);
+    shapeConnections[3] = new Connection(3, 0);
+    shapeConnections[4] = new Connection(0, 4);
+    shapeConnections[5] = new Connection(1, 5);
+    shapeConnections[6] = new Connection(2, 6);
+    shapeConnections[7] = new Connection(3, 7);
+    shapeConnections[8] = new Connection(4, 5);
+    shapeConnections[9] = new Connection(5, 6);
+    shapeConnections[10] = new Connection(6, 7);
+    shapeConnections[11] = new Connection(7, 4);
 
-    Shape* shape = new Shape(4, shapeCoords, 6, shapeConnections);
+    Shape* shape = new Shape(8, shapeCoords, 12, shapeConnections);
 
     float** transformMatrix = new float*[4];
 
@@ -71,11 +63,13 @@ void Area::paintEvent(QPaintEvent *) {
     float _viewZ = viewZ;
 
     Coords* view = new Coords(_viewX, _viewY, _viewZ);
+    Coords* transView = new Coords(_viewX - trans, _viewY - trans, _viewZ);
 
-    float cos1 = cos(M_PI * alpha/ 180);
-    float sin1 = sin(M_PI * alpha / 180);
+    translateShape(transformMatrix, transView);
+//    float cos1 = cos(M_PI * alpha/ 180);
+//    float sin1 = sin(M_PI * alpha / 180);
 
-    rotateShapeY(transformMatrix, cos1, sin1);
+//    rotateShapeY(transformMatrix, cos1, sin1);
     float** superCoords = new float*[4];
     for(int i = 0; i < 4 ; i++) {
         superCoords[i] = new float[1];
@@ -93,11 +87,6 @@ void Area::paintEvent(QPaintEvent *) {
     view->setY(superCoords[0][1]);
     view->setZ(superCoords[0][2]);
 
-//    viewX = view->getX();
-//    viewY = view->getY();
-//    viewZ = view->getZ();
-
-//    cout << superCoords[0][0] << ' ' <<superCoords[0][1] << ' ' <<superCoords[0][2] << ' ' << endl;
     Coords* translateCoords = new Coords(-view->getX(), -view->getY(), -view->getZ());
 
     for (int i = 0; i < 4; i++) {
@@ -110,7 +99,6 @@ void Area::paintEvent(QPaintEvent *) {
         }
     }
 
-    cout << translateCoords->getX() << ' ' << translateCoords->getY() << ' ' << translateCoords->getZ() << endl;
     translateShape(transformMatrix, translateCoords);
 
     scaleShape(transformMatrix, -1, 1, 1);
@@ -133,30 +121,23 @@ void Area::paintEvent(QPaintEvent *) {
 
     setNewCoords(shape, transformMatrix);
 
-    float r = sqrt(view->getX() * view->getX() + view->getY() * view->getY() + view->getZ() * view->getZ());
+    int n = shape->getN();
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < n; i++) {
         Coords* first = shape->getCoords(i);
 
-//        cout << "shapeOrigin::" << shapeOrigin->getCoords(i)->getX() << ' ' << shapeOrigin->getCoords(i)->getY() << ' ' << shapeOrigin->getCoords(i)->getZ() << ' ' << endl;
         float P = 5;
-//        float newXF = first->getX()*r/first->getZ();
         float newXF = first->getX();
         newXF = newXF / P * 250 + 250;
-//        float newYF = first->getY()*r/first->getZ();
         float newYF = first->getY();
         newYF =  newYF / P * 250 + 250;
         shape->SetCoords(i, newXF, 500 - newYF, first->getZ());
-//        cout << "shape::" << shape->getCoords(i)->getX() << ' ' << shape->getCoords(i)->getY() << ' ' << shape->getCoords(i)->getZ() << ' ' << endl;
-//        delete first;
     }
 
     for (int i = 0; i < 4; i++) {
         delete [] transformMatrix[i];
-//        delete [] superCoords[i];
     }
     delete [] transformMatrix;
-//    delete [] superCoords;
     delete view;
 
     int conN = shape->getConN();
@@ -165,16 +146,13 @@ void Area::paintEvent(QPaintEvent *) {
         Coords* first = shape->getCoords(connection->getBegin());
         Coords* second = shape->getCoords(connection->getEnd());
         painter.drawLine(first->getX(), first->getY(), second->getX(), second->getY());
-//        delete connection;
-//        delete first;
-//        delete second;
     }
     delete shape;
 }
 
 void Area::timerEvent(QTimerEvent *) {
-    alpha += 1;
-    if (alpha > 15)
+    trans += 0.1f;
+    if (trans > 5)
         killTimer(myTimer);
     else
         update();
